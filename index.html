@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <title>Żużel</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+    <script src="racer.js"></script>
+</head>
+<body>
+<div id="tlo" class="back"></div>
+<div style="color: white; padding: 10px;">
+    <ul>
+        <li>Spacja - rozpoczęcię wyścigu</li>
+        <li>Escape - reset planszy</li>
+    </ul>
+</div>
+
+<canvas id="background" class="canvasContainer" width="800" height="500"></canvas>
+
+<canvas id="canvasA" class="canvasContainer" width="800" height="500"></canvas>
+<canvas id="canvasB" class="canvasContainer" width="800" height="500"></canvas>
+<canvas id="canvasC" class="canvasContainer" width="800" height="500"></canvas>
+<canvas id="canvasD" class="canvasContainer" width="800" height="500"></canvas>
+
+<div class="stats">
+    <div id="playerA" class="player">
+        <div class="name"></div>
+        <div class="key"></div>
+        <div class="color" style="width: 100%">&nbsp;</div>
+        <div class="leap"></div>
+    </div>
+    <div id="playerB" class="player">
+        <div class="name"></div>
+        <div class="key"></div>
+        <div class="color" style="width: 100%">&nbsp;</div>
+        <div class="leap"></div>
+    </div>
+    <div id="playerC" class="player">
+        <div class="name"></div>
+        <div class="key"></div>
+        <div class="color" style="width: 100%">&nbsp;</div>
+        <div class="leap"></div>
+    </div>
+    <div id="playerD" class="player">
+        <div class="name"></div>
+        <div class="key"></div>
+        <div class="color" style="width: 100%">&nbsp;</div>
+        <div class="leap"></div>
+    </div>
+</div>
+<script>new Racer();</script>
+</body>
+</html>
