@@ -1,140 +1,136 @@
 class Racer {
     config;
-    players;
+    players = [];
 
-    constructor() {
+    constructor(newGame = false) {
         this.initConfig();
         this.initPlayers();
         this.initListeners();
-        this.setPlayersNames();
+        if (newGame) {
+            this.createGame().then();
+        }
         this.drawBackground();
     }
 
     initConfig() {
-        const bg = document.getElementById("background");
+        const background = document.getElementById("background");
+        const pressToStart = document.getElementById('pressToStart');
+        const pressToCreate = document.getElementById('pressToCreate');
+        const canvasA = document.getElementById("canvasA");
+        const canvasB = document.getElementById("canvasB");
+        const canvasC = document.getElementById("canvasC");
+        const canvasD = document.getElementById("canvasD");
+
+
         this.config = {
             angleIncrement: -10,
-            lineLength: 10,
+            speed: 3,
             lineWidth: 2,
-            speed: 30,
+            frameSpeed: 30,
             eventTarget: new EventTarget(),
-            leapEvent: new Event("leap"),
+            event: {
+                leap: new Event('leap'),
+                playersChanged: new Event('playersChanged'),
+            },
             isRunning: false,
-            canvas: {
-                background: bg,
-                a: document.getElementById("canvasA"),
-                b: document.getElementById("canvasB"),
-                c: document.getElementById("canvasC"),
-                d: document.getElementById("canvasD"),
+            background: {
+                canvas: background,
+                ctx: background.getContext("2d"),
                 center: {
-                    x: bg.width / 2,
-                    y: bg.height / 2,
+                    x: background.width / 2,
+                    y: background.height / 2,
                 }
             },
             track: null,
+            html: {
+                pressToStart,
+                pressToCreate,
+            },
+            ui: [{
+                canvas: canvasA,
+                ctx: canvasA.getContext("2d"),
+                stats: document.querySelector('#playerA'),
+            }, {
+                canvas: canvasB,
+                ctx: canvasB.getContext("2d"),
+                stats: document.querySelector('#playerB'),
+            }, {
+                canvas: canvasC,
+                ctx: canvasC.getContext("2d"),
+                stats: document.querySelector('#playerC'),
+            }, {
+                canvas: canvasD,
+                ctx: canvasD.getContext("2d"),
+                stats: document.querySelector('#playerD'),
+            }]
         };
     }
 
     initPlayers() {
-        this.players = {
-            a: {
-                id: 0,
-                name: '---',
-                key: 'z',
-                startPosition: {
-                    x: this.config.canvas.center.x,
-                    y: this.config.canvas.center.y + 50,
-                },
-                x: this.config.canvas.center.x,
-                y: this.config.canvas.center.y + 50,
-                color: '#66FF66',
-                leap: 0,
-                angle: 0,
-                isTurnLeft: false,
-                step: 0,
-                ui: {
-                    canvas: this.config.canvas.a,
-                    ctx: this.config.canvas.a.getContext("2d"),
-                    stats: document.querySelector('#playerA'),
-                }
-
-            },
-            b: {
-                id: 1,
-                name: '---',
-                key: 'm',
-                startPosition: {
-                    x: this.config.canvas.center.x,
-                    y: this.config.canvas.center.y + 75,
-                },
-                x: this.config.canvas.center.x,
-                y: this.config.canvas.center.y + 75,
-                color: '#6AF',
-                leap: 0,
-                angle: 0,
-                isTurnLeft: false,
-                step: 0,
-                ui: {
-                    canvas: this.config.canvas.b,
-                    ctx: this.config.canvas.b.getContext("2d"),
-                    stats: document.querySelector('#playerB'),
-                }
-            },
-            c: {
-                id: 2,
-                name: '---',
-                key: 'ArrowLeft',
-                startPosition: {
-                    x: this.config.canvas.center.x,
-                    y: this.config.canvas.center.y + 100,
-                },
-                x: this.config.canvas.center.x,
-                y: this.config.canvas.center.Y + 100,
-                color: '#F66',
-                leap: 0,
-                angle: 0,
-                isTurnLeft: false,
-                step: 0,
-                ui: {
-                    canvas: this.config.canvas.c,
-                    ctx: this.config.canvas.c.getContext("2d"),
-                    stats: document.querySelector('#playerC'),
-                }
-            },
-            d: {
-                id: 3,
-                name: '---',
-                key: 'Enter',
-                startPosition: {
-                    x: this.config.canvas.center.x,
-                    y: this.config.canvas.center.y + 125,
-                },
-                x: this.config.canvas.center.x,
-                y: this.config.canvas.center.y + 125,
-                color: '#FF6',
-                leap: 0,
-                angle: 0,
-                isTurnLeft: false,
-                step: 0,
-                ui: {
-                    canvas: this.config.canvas.d,
-                    ctx: this.config.canvas.d.getContext("2d"),
-                    stats: document.querySelector('#playerD'),
-                }
-            },
-        };
+        this.players = [{
+            id: 0,
+            name: '',
+            key: 'z',
+            x: 0,
+            y: 0,
+            color: '#66FF66',
+            leap: 0,
+            angle: 0,
+            isTurnLeft: false,
+            step: 0,
+            speed: 0,
+        }, {
+            id: 1,
+            name: '',
+            key: 'm',
+            x: 0,
+            y: 0,
+            color: '#6AF',
+            leap: 0,
+            angle: 0,
+            isTurnLeft: false,
+            step: 0,
+            speed: 0,
+        }, {
+            id: 2,
+            name: '',
+            key: 'ArrowLeft',
+            x: 0,
+            y: 0,
+            color: '#F66',
+            leap: 0,
+            angle: 0,
+            isTurnLeft: false,
+            step: 0,
+            speed: 0,
+        }, {
+            id: 3,
+            name: '',
+            key: 'ArrowRight',
+            x: 0,
+            y: 0,
+            color: '#FF6',
+            leap: 0,
+            angle: 0,
+            isTurnLeft: false,
+            step: 0,
+            speed: 0,
+        }];
     }
 
     initListeners() {
-        document.addEventListener('keydown', (event) => this.handleKeyPress(event, true));
-        document.addEventListener('keyup', (event) => this.handleKeyPress(event, false))
-        this.config.eventTarget.addEventListener("leap", e => e.data.ui.stats.querySelector(".leap").innerHTML = e.data.leap);
+        this.config.eventTarget.addEventListener('keydown', (event) => this.handleKeyPress(event, true));
+        this.config.eventTarget.addEventListener('keyup', (event) => this.handleKeyPress(event, false))
+        this.config.eventTarget.addEventListener('leap', event => {
+            const player = event.data;
+            this.config.ui[player.id].stats.querySelector(".leap").innerHTML = player.leap;
+        });
     }
 
     drawEdge(radius = 30, distance = 100) {
-        const x = this.config.canvas.background.width / 2;
-        const y = this.config.canvas.background.height / 2;
-        const ctx = this.config.canvas.background.getContext("2d");
+        const x = this.config.background.center.x;
+        const y = this.config.background.center.y;
+        const ctx = this.config.background.ctx;
         const startAngle1 = Math.PI * 0.5;
         const endAngle1 = Math.PI * 1.5;
         const startAngle2 = Math.PI * 1.5;
@@ -144,6 +140,8 @@ class Racer {
         const x2 = x + adjustedDistance;
 
         ctx.beginPath();
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
         ctx.arc(x1, y, radius, startAngle1, endAngle1);
         ctx.stroke();
 
@@ -191,16 +189,18 @@ class Racer {
     }
 
     drawFinishLine(track) {
-        const ctx = this.config.canvas.background.getContext("2d");
+        const ctx = this.config.background.ctx;
         const y1 = track.inner.y + track.inner.radius;
         const y2 = track.outer.y + track.outer.radius;
 
         ctx.beginPath();
-        ctx.moveTo(this.config.canvas.center.x, y1);
-        ctx.lineTo(this.config.canvas.center.x, y2);
+        ctx.strokeStyle = '#555';
+        ctx.lineWidth = 2;
+        ctx.moveTo(this.config.background.center.x, y1);
+        ctx.lineTo(this.config.background.center.x, y2);
         ctx.stroke();
 
-        return {x1: this.config.canvas.center.x, y1, x2: this.config.canvas.center.x, y2};
+        return {x1: this.config.background.center.x, y1, x2: this.config.background.center.x, y2};
     }
 
     drawBackground() {
@@ -212,28 +212,30 @@ class Racer {
         return new Promise(resolve => {
             if (player.isTurnLeft) {
                 player.angle += this.config.angleIncrement * (Math.PI / 180);
+                player.step = 0;
+            } else {
+                player.step++;
             }
+
+            const playerSpeed = this.config.speed + Math.floor(player.leap + 1);
 
             const x1 = player.x;
             const y1 = player.y;
-            const x2 = player.x = player.x + this.config.lineLength * Math.cos(player.angle);
-            const y2 = player.y = player.y + this.config.lineLength * Math.sin(player.angle);
+            const x2 = player.x = player.x + playerSpeed * Math.cos(player.angle);
+            const y2 = player.y = player.y + playerSpeed * Math.sin(player.angle);
 
-            if (x2 < this.config.canvas.center.x && player.leap % 1 === 0) {
+            if (x2 < this.config.background.center.x && player.leap % 1 === 0) {
                 player.leap += 0.5;
-                this.config.leapEvent.data = player;
-                this.config.eventTarget.dispatchEvent(this.config.leapEvent);
             }
 
-            if (x2 > this.config.canvas.center.x && player.leap % 1 !== 0) {
+            if (x2 > this.config.background.center.x && player.leap % 1 !== 0) {
                 player.leap += 0.5;
-                this.config.leapEvent.data = player;
-                this.config.eventTarget.dispatchEvent(this.config.leapEvent);
-                player.ui.ctx.clearRect(0, 0, player.ui.canvas.width, player.ui.canvas.height);
+                this.clearCanvas(player.id);
             }
 
+            this.config.event.leap.data = player;
+            this.config.eventTarget.dispatchEvent(this.config.event.leap);
 
-            player.step++;
             this.drawPath(x1, y1, x2, y2, player);
 
             resolve(player);
@@ -245,6 +247,7 @@ class Racer {
             this.config.isRunning = true;
         } else {
             this.config.isRunning = false;
+            this.config.html.pressToStart.style.display = 'block';
             console.log('The race is over');
 
             return;
@@ -252,84 +255,90 @@ class Racer {
 
         Promise.all(race).then((results) => {
             race.length = 0;
-            results.forEach(player =>
-                this.config.track.isInside(player.x, player.y)
-                    ? race.push(this.run(player))
-                    : console.log(`Player ${player.name} crashed in leap ${player.leap}!`)
-            );
+            results.forEach(player => {
+                if (this.config.track.isInside(player.x, player.y)) {
+                    race.push(this.run(player));
+                } else {
+                    this.clearCanvas(player.id)
+                    console.log(`Player ${player.name} crashed in leap ${player.leap}!`);
+                }
+            });
 
-            setTimeout(() => requestAnimationFrame(() => this.runAll(race)), 1000 / this.config.speed);
+            setTimeout(() => requestAnimationFrame(() => this.runAll(race)), 1000 / this.config.frameSpeed);
 
         }).catch((error) => console.error(error));
     }
 
     drawPath(x1, y1, x2, y2, player) {
-        player.ui.ctx.beginPath();
-        player.ui.ctx.moveTo(x1, y1);
-        player.ui.ctx.lineTo(x2, y2);
-        player.ui.ctx.strokeStyle = player.color;
-        player.ui.ctx.lineLength = this.config.lineLength;
-        player.ui.ctx.lineWidth = this.config.lineWidth;
-        player.ui.ctx.stroke();
+        const ui = this.config.ui[player.id];
+
+        ui.ctx.beginPath();
+        ui.ctx.moveTo(x1, y1);
+        ui.ctx.lineTo(x2, y2);
+        ui.ctx.strokeStyle = player.color;
+        ui.ctx.lineLength = this.config.speed;
+        ui.ctx.lineWidth = this.config.lineWidth;
+        ui.ctx.stroke();
+    }
+
+    clearCanvas(id) {
+        const ui = this.config.ui[id];
+        ui.ctx.clearRect(0, 0, ui.canvas.width, ui.canvas.height);
     }
 
     handleKeyPress(event, isKeyDown) {
-        if (!this.config.isRunning && event.key === 'Escape') {
+        if (!this.config.isRunning && event.key === 'c') {
             console.log('restart');
-            this.setPlayersNames();
-            this.restart();
+            this.createGame().then(() => this.restart());
         }
 
         if (!this.config.isRunning && event.key === ' ') {
             this.restart();
             const race = [];
 
-            for (const k in this.players) {
-                if (this.players.hasOwnProperty(k) && this.players[k].name !== '---') {
-                    race.push(this.run(this.players[k]));
+            this.players.forEach((player) => {
+                if (player.name !== '') {
+                    race.push(this.run(player));
                 }
-            }
+            });
 
-            this.runAll(race);
-        }
-
-        for (const k in this.players) {
-            if (this.players.hasOwnProperty(k) && event.key === this.players[k].key) {
-                this.players[k].isTurnLeft = isKeyDown;
+            if (race.length > 0) {
+                this.config.html.pressToStart.style.display = 'none';
+                this.runAll(race);
             }
         }
+        this.players.forEach((player) => {
+            if (player.key === event.key) {
+                player.isTurnLeft = isKeyDown;
+            }
+        });
     }
 
     setStats() {
-        for (const k in this.players) {
-            if (this.players.hasOwnProperty(k)) {
-                const player = this.players[k];
-                const name = player.ui.stats.querySelector(".name");
-                const key = player.ui.stats.querySelector(".key");
-                const color = player.ui.stats.querySelector(".color");
-                const leap = player.ui.stats.querySelector(".leap");
+        this.players.forEach((player) => {
+            const stats = this.config.ui[player.id].stats;
 
-                name.innerHTML = player.name;
-                name.style.cursor = 'default';
+            const name = stats.querySelector(".name");
+            const key = stats.querySelector(".key");
+            const color = stats.querySelector(".color");
+            const leap = stats.querySelector(".leap");
 
-                key.innerHTML = player.key;
-                key.style.cursor = 'pointer';
-                key.onclick = () => this.setKey(player);
+            name.innerHTML = player.name;
+            name.style.cursor = 'default';
 
-                color.style.backgroundColor = player.color;
-                color.style.cursor = 'pointer';
-                color.onclick = () => this.setColor(player);
+            key.innerHTML = player.key;
+            key.style.cursor = 'pointer';
+            key.onclick = () => this.setKey(player);
 
-                leap.innerHTML = player.leap;
-                leap.style.cursor = 'default';
+            color.style.backgroundColor = player.color;
+            color.style.cursor = 'pointer';
+            color.onclick = () => this.setColor(player);
 
-                if (player.name === '---') {
-                    player.ui.stats.style.display = 'none';
-                } else {
-                    player.ui.stats.style.display = 'block';
-                }
-            }
-        }
+            leap.innerHTML = player.leap;
+            leap.style.cursor = 'default';
+
+            stats.style.display = player.name === '' ? 'none' : 'block';
+        });
     }
 
     showColorPicker() {
@@ -345,16 +354,16 @@ class Racer {
     }
 
     setName(player) {
-        const result = prompt(`Podaj imię gracza numer ${player.id + 1}`, player.name);
-        if (result !== '' && result !== null && result !== undefined) {
+        const result = prompt(`Type player ${player.id + 1} name`, player.name);
+        if (result !== null && result !== undefined) {
             player.name = result;
             this.setStats();
         }
     }
 
     setKey(player) {
-        const result = prompt(`Podaj klawisz ruchu dla ${player.name}`, player.key);
-        if (result !== '' && result !== null && result !== undefined) {
+        const result = prompt(`Set move key for ${player.name}`, player.key);
+        if (result !== null && result !== undefined) {
             player.key = result;
         }
         this.setStats();
@@ -368,26 +377,37 @@ class Racer {
     }
 
     restart() {
-        for (const k in this.players) {
-            if (this.players.hasOwnProperty(k)) {
-                const player = this.players[k];
-                player.x = player.startPosition.x;
-                player.y = player.startPosition.y;
-                player.angle = 0;
-                player.leap = 0;
-                player.step = 0;
-                player.isTurnLeft = false;
-                player.ui.ctx.clearRect(0, 0, player.ui.canvas.width, player.ui.canvas.height);
-            }
-        }
+        this.players.forEach((player) => {
+            player.x = this.config.background.center.x;
+            player.y = this.config.background.center.y + 50 + (player.id * 25);
+            player.angle = 0;
+            player.leap = 0;
+            player.step = 0;
+            player.speed = 0;
+            player.isTurnLeft = false;
+            this.clearCanvas(player.id);
+        });
+
         this.setStats();
+
+        const allPlayersSet = this.players.some(player => player.name !== '');
+
+        this.config.html.pressToCreate.style.display = allPlayersSet ? 'none' : 'block';
+
+        if (!racer.config.isRunning && allPlayersSet) {
+            racer.config.html.pressToStart.style.display = 'block';
+        } else {
+            racer.config.html.pressToStart.style.display = 'none';
+        }
     }
 
-    setPlayersNames() {
-        for (const k in this.players) {
-            if (this.players.hasOwnProperty(k)) {
-                this.setName(this.players[k]);
-            }
-        }
+    createGame() {
+        return new Promise((resolve) => {
+            this.players.forEach((player) => this.setName(player));
+
+            this.config.event.playersChanged.data = this.players;
+            this.config.eventTarget.dispatchEvent(this.config.event.playersChanged);
+            resolve();
+        });
     }
 }
