@@ -1,18 +1,22 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
-    <title>Żużel</title>
+    <title>Racer</title>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="style.css">
+    <script src="key.js"></script>
     <script src="racer.js"></script>
+    <script type="text/javascript" src="ably.js"></script>
 </head>
 <body>
-<div id="tlo" class="back"></div>
-<div style="color: white; padding: 10px;">
-    <ul>
-        <li>Spacja - rozpoczęcię wyścigu</li>
-        <li>Escape - reset planszy</li>
-    </ul>
+<div id="pressToStart" class="info" style="display: none">Press SPACE to start</div>
+<div id="pressToCreate" class="info">Press C to configure</div>
+
+<div class="back"></div>
+
+<div style="padding: 10px;">
+    <div id="online" class="online-background"></div>
+    <div id="offline" class="offline-background"></div>
 </div>
 
 <canvas id="background" class="canvasContainer" width="800" height="500"></canvas>
@@ -48,6 +52,97 @@
         <div class="leap"></div>
     </div>
 </div>
-<script>new Racer();</script>
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const online = Boolean(urlParams.get('online'));
+    const createGame = document.getElementById('pressToCreate');
+
+    function setChangeModeButton(toOnline) {
+        const param = toOnline ? '?online=1' : '';
+        const url = window.location.href.split('?')[0];
+        const mode = document.getElementById(toOnline ? 'offline' : 'online');
+        mode.addEventListener('click', () => window.location.href = url + param);
+        mode.style.display = 'block';
+        mode.title = toOnline
+            ? 'By clicking this button, you will enter the experimental mode, which may not function correctly'
+            : '';
+    }
+
+    setChangeModeButton(!online);
+
+    const racer = new Racer(false);
+
+    if (!online) {
+        const getKeyEvent = (eventName, eventKey) => new KeyboardEvent(eventName, {key: eventKey});
+        ['keydown', 'keyup'].forEach((eventName) =>
+            document.addEventListener(eventName, (event) =>
+                racer.config.eventTarget.dispatchEvent(getKeyEvent(eventName, event.key))
+            )
+        );
+        createGame.style.display = 'block';
+    } else {
+        const client = new Ably.Realtime(API_KEY);
+        const channel = client.channels.get('queue');
+        const userKeysPressed = {};
+
+        client.connection.on('connected', () => {
+            createGame.style.display = 'block';
+
+            console.log('connected', client.connection.id);
+            channel.publish('requestForPlayers', {});
+
+            document.addEventListener('keydown', (event) => {
+                const player = racer.players.find((player) => player.key === event.key);
+
+                if (!userKeysPressed[event.key]) {
+                    userKeysPressed[event.key] = true;
+                    channel.publish('keydown', {key: event.key, player});
+                }
+            });
+
+            document.addEventListener('keyup', (event) => {
+                const player = racer.players.find((player) => player.key === event.key);
+
+                userKeysPressed[event.key] = false;
+                channel.publish('keyup', {key: event.key, player});
+            });
+
+            racer.config.eventTarget.addEventListener('playersChanged', event => {
+                channel.publish('currentConfig', event.data);
+            });
+
+            channel.subscribe((message) => {
+                if (['requestForPlayers'].includes(message.name)) {
+                    console.log('rec: requestForPlayers');
+                    channel.publish('currentConfig', racer.players);
+                }
+                if (['currentConfig'].includes(message.name)) {
+                    console.log('rec: currentConfig');
+                    racer.players = message.data;
+                    racer.restart();
+                    racer.setStats();
+                }
+
+                if (['keydown', 'keyup'].includes(message.name)) {
+                    if (client.connection.id !== message.connectionId && message.data.key === 'c') {
+                        return;
+                    }
+
+                    // const index = racer.players.findIndex((player) => player.key === message.data.key);
+                    // if (index !== -1) {
+                    //     console.log(`found ${index} key = ${message.data.key} [${message.name}]`);
+                    //     racer.players[index].x = message.data.player.x;
+                    //     racer.players[index].y = message.data.player.y;
+                    // } else {
+                    //     console.log('not found');
+                    // }
+
+                    const event = new KeyboardEvent(message.name, {key: message.data.key});
+                    racer.config.eventTarget.dispatchEvent(event);
+                }
+            });
+        });
+    }
+</script>
 </body>
 </html>
