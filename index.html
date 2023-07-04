@@ -12,20 +12,54 @@
 <body>
 <div id="pressToStart" class="info" style="display: none">Press SPACE to start</div>
 <div id="pressToCreate" class="info">Press C to configure</div>
+<div id="howToPlay" class="how-to-play" style="display: none">
+    <ul>
+        <li>After launching the game, press the "C" key on the keyboard to enter player names. You can enter a maximum
+            of 4 players.
+        </li>
+        <li>Once the names are entered, the player names will appear in the center of the screen. Each player will be
+            assigned a unique key and color, which will also be displayed next to their names.
+        </li>
+        <li>If a player wants to change their assigned key or color, they can click on the respective key name or color
+            field next to their player name.
+        </li>
+        <li>After the player configuration is completed, you can start the gameplay. The entire game will be played
+            using a single computer and keyboard.
+        </li>
+        <li>The race will begin when you press the "Space" key. Each player will be represented on the race track by a
+            line with their assigned color.
+        </li>
+        <li>During the race, the player's line will move in one direction, leaving a trail behind. The trail will
+            disappear after completing each lap.
+        </li>
+        <li>The player can control their line using the assigned key. By pressing the turn key, the line will make a
+            left turn. Remember, you can only turn left.
+        </li>
+        <li>The longer the player holds the turn key, the sharper the turn will be. Be careful not to hit the inner or
+            outer edges of the track.
+        </li>
+        <li>The speed of each player increases with each lap, making the game more intense.</li>
+        <li>The winner is the player who completes the most laps during the race.</li>
+    </ul>
+    Enjoy your game and good luck in the races!
+</div>
 
 <div class="back"></div>
 
+<div style="padding: 10px;">
+    <div id="howToPlayIcon" class="how-to-play-background"></div>
+</div>
 <div style="padding: 10px;">
     <div id="online" class="online-background"></div>
     <div id="offline" class="offline-background"></div>
 </div>
 
-<canvas id="background" class="canvasContainer" width="800" height="500"></canvas>
+<canvas id="background" class="canvas-container" width="800" height="500"></canvas>
 
-<canvas id="canvasA" class="canvasContainer" width="800" height="500"></canvas>
-<canvas id="canvasB" class="canvasContainer" width="800" height="500"></canvas>
-<canvas id="canvasC" class="canvasContainer" width="800" height="500"></canvas>
-<canvas id="canvasD" class="canvasContainer" width="800" height="500"></canvas>
+<canvas id="canvasA" class="canvas-container" width="800" height="500"></canvas>
+<canvas id="canvasB" class="canvas-container" width="800" height="500"></canvas>
+<canvas id="canvasC" class="canvas-container" width="800" height="500"></canvas>
+<canvas id="canvasD" class="canvas-container" width="800" height="500"></canvas>
 
 <div class="stats">
     <div id="playerA" class="player">
@@ -57,6 +91,10 @@
     const urlParams = new URLSearchParams(window.location.search);
     const online = Boolean(urlParams.get('online'));
     const createGame = document.getElementById('pressToCreate');
+    const howToPlayIcon = document.getElementById('howToPlayIcon');
+    const howToPlay = document.getElementById('howToPlay');
+    howToPlayIcon.addEventListener('mouseover', () => howToPlay.style.display = 'block');
+    howToPlayIcon.addEventListener('mouseout', () => howToPlay.style.display = 'none');
 
     function setChangeModeButton(toOnline) {
         const param = toOnline ? '?online=1' : '';
