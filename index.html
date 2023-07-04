@@ -14,6 +14,7 @@
 <div id="pressToStart" class="info" style="display: none">Press SPACE to start</div>
 <div id="pressToCreate" class="info">Press C to configure</div>
 <div id="howToPlay" class="how-to-play" style="display: none">
+    <div style="padding: 20px">
     <ul>
         <li>After launching the game, press the "C" key on the keyboard to enter player names. You can enter a maximum
             of 4 players.
@@ -43,19 +44,24 @@
         <li>The winner is the player who completes the most laps during the race.</li>
     </ul>
     Enjoy your game and good luck in the races!
+    </div>
 </div>
 
 <div class="back"></div>
 
-<div style="padding: 10px;">
-    <div id="howToPlayIcon" class="how-to-play-background"></div>
-</div>
-<div style="padding: 10px;">
-    <div id="online" class="online-background"></div>
-    <div id="offline" class="offline-background"></div>
+<div class="icons">
+    <div class="icon-container">
+        <div class="icon" style="padding: 10px;">
+            <div id="howToPlayIcon" class="how-to-play-background"></div>
+        </div>
+        <div class="icon" style="padding: 10px;">
+            <div id="online" class="online-background"></div>
+            <div id="offline" class="offline-background"></div>
+        </div>
+    </div>
 </div>
 
-<div class="canvas-container" style="width:800px; height: 500px;">
+<div class="canvas-container" style="width:100%; height: 100%;">
     <canvas id="background" class="canvas"></canvas>
     <canvas id="canvasA" class="canvas"></canvas>
     <canvas id="canvasB" class="canvas"></canvas>
@@ -96,8 +102,8 @@
     const createGame = document.getElementById('pressToCreate');
     const howToPlayIcon = document.getElementById('howToPlayIcon');
     const howToPlay = document.getElementById('howToPlay');
-    howToPlayIcon.addEventListener('mouseover', () => howToPlay.style.display = 'block');
-    howToPlayIcon.addEventListener('mouseout', () => howToPlay.style.display = 'none');
+    howToPlayIcon.addEventListener('click', () => howToPlay.style.display = howToPlay.style.display === 'none' ? 'block' : 'none');
+    howToPlay.addEventListener('click', () => howToPlay.style.display = 'none');
 
     function setChangeModeButton(toOnline) {
         const param = toOnline ? '?online=1' : '';

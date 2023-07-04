@@ -4,12 +4,12 @@ class Racer {
 
     constructor(newGame = false) {
         this.initConfig();
-        this.initPlayers();
         this.initListeners();
         if (newGame) {
             this.createGame().then();
         }
         this.drawBackground();
+        this.initPlayers();
         this.setStatus(`Enjoy`);
     }
 
@@ -25,10 +25,17 @@ class Racer {
             d: document.getElementById("canvasD"),
         };
 
+        const resizeObserver = new ResizeObserver(entries => {
+            for (let entry of entries) {
+                entry.target.width = entry.target.clientWidth;
+                entry.target.height = entry.target.clientHeight;
+                this.drawBackground();
+            }
+        });
+
         for (let name in canvases) {
             if (canvases.hasOwnProperty(name)) {
-                canvases[name].width = canvases[name].clientWidth;
-                canvases[name].height = canvases[name].clientHeight;
+                resizeObserver.observe(canvases[name]);
             }
         }
 
@@ -53,6 +60,7 @@ class Racer {
                 }
             },
             track: null,
+            finishLine: null,
             html: {
                 pressToStart,
                 pressToCreate,
@@ -99,27 +107,29 @@ class Racer {
         });
     }
 
-    drawEdge(radius = 30, distance = 100) {
-        const x = this.config.background.center.x;
-        const y = this.config.background.center.y;
+    drawEdge(inner) {
+        let width = this.config.background.canvas.width;
+        let height = this.config.background.canvas.height;
+        const margin = !inner ? 20 : height/1.2;
+
+        width -= margin;
+        height -= margin;
+
+        const radius = height /2;
+        const x1 = radius + (margin/2);
+        const x2 = width-radius + (margin/2);
+        const y = (height/2) + (margin/2);
+
         const ctx = this.config.background.ctx;
         const startAngle1 = Math.PI * 0.5;
         const endAngle1 = Math.PI * 1.5;
         const startAngle2 = Math.PI * 1.5;
         const endAngle2 = Math.PI * 0.5;
-        const adjustedDistance = radius + distance;
-        const x1 = x - adjustedDistance;
-        const x2 = x + adjustedDistance;
 
-        ctx.beginPath();
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 2;
-        ctx.arc(x1, y, radius, startAngle1, endAngle1);
-        ctx.stroke();
-
         ctx.beginPath();
-        ctx.moveTo(x1, y - radius);
-        ctx.lineTo(x2, y - radius);
+        ctx.arc(x1, y, radius, startAngle1, endAngle1);
         ctx.stroke();
 
         ctx.beginPath();
@@ -127,16 +137,17 @@ class Racer {
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.moveTo(x2, y + radius);
-        ctx.lineTo(x1, y + radius);
+        ctx.moveTo(x1, margin/2);
+        ctx.lineTo(x2, margin/2);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(x1, height + (margin/2));
+        ctx.lineTo(x2, height + (margin/2));
         ctx.stroke();
 
         return {
-            x1: x1,
-            x2: x2,
-            y: y,
-            radius: radius,
-            distance: distance,
+            x1, x2, y, radius,
             isInside: function (x, y) {
                 const isInsideFirstHalfCircle = Math.pow(x - this.x1, 2) + Math.pow(y - this.y, 2) <= Math.pow(this.radius, 2);
                 const isInsideSecondHalfCircle = Math.pow(x - this.x2, 2) + Math.pow(y - this.y, 2) <= Math.pow(this.radius, 2);
@@ -148,8 +159,8 @@ class Racer {
     }
 
     drawTrack() {
-        const inner = this.drawEdge(30, 100);
-        const outer = this.drawEdge(160, 40);
+        const inner = this.drawEdge(true);
+        const outer = this.drawEdge(false);
 
         return {
             inner,
@@ -162,22 +173,26 @@ class Racer {
 
     drawFinishLine(track) {
         const ctx = this.config.background.ctx;
+        const x = (track.inner.x1 + track.outer.x2) / 2;
         const y1 = track.inner.y + track.inner.radius;
         const y2 = track.outer.y + track.outer.radius;
 
         ctx.beginPath();
         ctx.strokeStyle = '#555';
         ctx.lineWidth = 2;
-        ctx.moveTo(this.config.background.center.x, y1);
-        ctx.lineTo(this.config.background.center.x, y2);
+        ctx.moveTo(Math.round(x), y1);
+        ctx.lineTo(Math.round(x), y2);
         ctx.stroke();
 
-        return {x1: this.config.background.center.x, y1, x2: this.config.background.center.x, y2};
+        return {x, y1, y2};
     }
 
     drawBackground() {
+        const bg = this.config.background;
+        bg.ctx.clearRect(0, 0, bg.canvas.width, bg.canvas.height);
+
         this.config.track = this.drawTrack();
-        this.drawFinishLine(this.config.track);
+        this.config.finishLine = this.drawFinishLine(this.config.track);
     }
 
     run(player) {
@@ -372,10 +387,32 @@ class Racer {
         });
     }
 
+    playersPositions(x1, y1, x2, y2, count) {
+        const incrementX = (x2 - x1) / count;
+        const incrementY = (y2 - y1) / count;
+        const result = [];
+        for (let i = 0; i < count; i++) {
+            result.push({
+                x: Math.round(x1 + i * incrementX),
+                y: Math.round(y1 + i * incrementY),
+            });
+        }
+
+        return result;
+    }
+
     restart() {
+        const positions = this.playersPositions(
+            this.config.finishLine.x,
+            this.config.finishLine.y1,
+            this.config.finishLine.x,
+            this.config.finishLine.y2,
+            this.players.length + 1
+        );
+
         this.players.forEach((player) => {
-            player.x = this.config.background.center.x;
-            player.y = this.config.background.center.y + 50 + (player.id * 25);
+            player.x = positions[player.id + 1].x
+            player.y = positions[player.id + 1].y
             player.angle = 0;
             player.lap = 0;
             player.step = 0;
