@@ -4,9 +4,10 @@
     <title>Racer</title>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="style.css">
-    <script src="key.js"></script>
-    <script src="racer.js"></script>
+    <script type="text/javascript" src="racer.js"></script>
+    <script type="text/javascript" src="crypto-js.js"></script>
     <script type="text/javascript" src="ably.js"></script>
+    <script type="text/javascript" src="ably-key-manager.js"></script>
 </head>
 <body>
 <div id="pressToStart" class="info" style="display: none">Press SPACE to start</div>
@@ -81,11 +82,20 @@
         );
         createGame.style.display = 'block';
     } else {
-        const client = new Ably.Realtime(API_KEY);
-        const channel = client.channels.get('queue');
-        const userKeysPressed = {};
+        let client;
+        let passwd = prompt('Type password', '');
+        if (passwd !== '' && passwd !== undefined && passwd !== null) {
+            try {
+                client = new Ably.Realtime(AblyKeyManager.getKey(passwd));
+            } catch (e) {
+                alert('Wrong password!');
+            }
+            passwd = '';
+        }
 
-        client.connection.on('connected', () => {
+        client?.connection.on('connected', () => {
+            const channel = client.channels.get('queue');
+            const userKeysPressed = {};
             createGame.style.display = 'block';
 
             console.log('connected', client.connection.id);
