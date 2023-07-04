@@ -2,18 +2,12 @@
  * Required library:
  * - https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.js
  */
-const AblyKeyManager = (function () {
+const KeyManager = (function () {
     const privateData = new WeakMap();
 
     class Manager {
         constructor() {
-            privateData.set(this, {
-                encryptedKey:
-                    'U2FsdGVkX1/aPE9V/GpjBzY55JU' +
-                    'nSwgl9XyO9pKqne5ILoGnm7Wt72' +
-                    'x82ODC+Bit4mNbqMKbqc8aiQoIE' +
-                    'cDxfaoPBEpv59sJUjYSIav0lt0='
-            });
+            privateData.set(this, { encryptedKey: API_KEY_ENCRYPTED });
         }
 
         /**

@@ -6,8 +6,9 @@
     <link rel="stylesheet" href="style.css">
     <script type="text/javascript" src="racer.js"></script>
     <script type="text/javascript" src="crypto-js.js"></script>
-    <script type="text/javascript" src="ably.js"></script>
-    <script type="text/javascript" src="ably-key-manager.js"></script>
+    <script type="text/javascript" src="ably-1.js"></script>
+    <script type="text/javascript" src="key.js"></script>
+    <script type="text/javascript" src="key-manager.js"></script>
 </head>
 <body>
 <div id="pressToStart" class="info" style="display: none">Press SPACE to start</div>
@@ -54,37 +55,39 @@
     <div id="offline" class="offline-background"></div>
 </div>
 
-<canvas id="background" class="canvas-container" width="800" height="500"></canvas>
-
-<canvas id="canvasA" class="canvas-container" width="800" height="500"></canvas>
-<canvas id="canvasB" class="canvas-container" width="800" height="500"></canvas>
-<canvas id="canvasC" class="canvas-container" width="800" height="500"></canvas>
-<canvas id="canvasD" class="canvas-container" width="800" height="500"></canvas>
+<div class="canvas-container" style="width:800px; height: 500px;">
+    <canvas id="background" class="canvas"></canvas>
+    <canvas id="canvasA" class="canvas"></canvas>
+    <canvas id="canvasB" class="canvas"></canvas>
+    <canvas id="canvasC" class="canvas"></canvas>
+    <canvas id="canvasD" class="canvas"></canvas>
+    <div id="status" class="status"></div>
+</div>
 
 <div class="stats">
     <div id="playerA" class="player">
         <div class="name"></div>
         <div class="key"></div>
         <div class="color" style="width: 100%">&nbsp;</div>
-        <div class="leap"></div>
+        <div class="lap"></div>
     </div>
     <div id="playerB" class="player">
         <div class="name"></div>
         <div class="key"></div>
         <div class="color" style="width: 100%">&nbsp;</div>
-        <div class="leap"></div>
+        <div class="lap"></div>
     </div>
     <div id="playerC" class="player">
         <div class="name"></div>
         <div class="key"></div>
         <div class="color" style="width: 100%">&nbsp;</div>
-        <div class="leap"></div>
+        <div class="lap"></div>
     </div>
     <div id="playerD" class="player">
         <div class="name"></div>
         <div class="key"></div>
         <div class="color" style="width: 100%">&nbsp;</div>
-        <div class="leap"></div>
+        <div class="lap"></div>
     </div>
 </div>
 <script>
@@ -124,7 +127,7 @@
         let passwd = prompt('Type password', '');
         if (passwd !== '' && passwd !== undefined && passwd !== null) {
             try {
-                client = new Ably.Realtime(AblyKeyManager.getKey(passwd));
+                client = new Ably.Realtime(KeyManager.getKey(passwd));
             } catch (e) {
                 alert('Wrong password!');
             }
